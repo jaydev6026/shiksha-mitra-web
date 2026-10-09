@@ -48,25 +48,11 @@
     stopButton.hidden = true
   }
 
-  // Text-to-Speech ke liye Special Characters Safayi Function
-  function cleanTextForSpeech(text) {
-    if (!text) return ''
-    return text
-      .replace(/[*\\|<>_~#`\-+=\[\]{}()\/]/g, ' ') // Special characters ko space se replace karega
-      .replace(/\s+/g, ' ')                        // Multiple spaces ko single space banayega
-      .trim()
-  }
-
   function speak(text, language) {
     if (!('speechSynthesis' in window) || !text) return
     window.speechSynthesis.cancel()
-
-    // Cleaned text use hoga bolne ke liye
-    const cleanedText = cleanTextForSpeech(text)
-    if (!cleanedText) return
-
     document.body.classList.add('is-speaking')
-    const utterance = new SpeechSynthesisUtterance(cleanedText)
+    const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = language === 'Hindi' ? 'hi-IN' : language === 'Hinglish' ? 'en-IN' : 'en-IN'
     utterance.rate = 0.91
     utterance.onstart = () => { stopButton.hidden = false }
@@ -102,7 +88,33 @@
   $$('.keyboard-target').forEach((input) => {
     input.addEventListener('focus', () => showKeyboard(input))
   })
-  $('#keyboardDone').addEventListener('click', () => hideKeyboard())   keyboardBackdrop.addEventListener('click', () => hideKeyboard())    function insertAtCaret(input, value) {     if (!input \vert{}\vert{} input.disabled) return     const start = input.selectionStart ?? input.value.length     const end = input.selectionEnd ?? input.value.length     if (value === 'backspace') {       if (start === end && start > 0) input.setRangeText('', start - 1, end, 'end')       else input.setRangeText('', start, end, 'end')     } else {       input.setRangeText(value, start, end, 'end')     }     input.dispatchEvent(new Event('input', { bubbles: true }))     input.focus({ preventScroll: true })   }    keyboard.addEventListener('pointerdown', (event) => {     if (event.target.closest('button')) event.preventDefault()   })   keyboard.addEventListener('click', (event) => {     const button = event.target.closest('[data-key]')     if (!button \vert{}\vert{} !activeInput) return     const key = button.dataset.key     if (key === 'shift') {       isShifted = !isShifted       $$('[data-key]', keyboard).forEach((item) => {
+  $('#keyboardDone').addEventListener('click', () => hideKeyboard())
+  keyboardBackdrop.addEventListener('click', () => hideKeyboard())
+
+  function insertAtCaret(input, value) {
+    if (!input || input.disabled) return
+    const start = input.selectionStart ?? input.value.length
+    const end = input.selectionEnd ?? input.value.length
+    if (value === 'backspace') {
+      if (start === end && start > 0) input.setRangeText('', start - 1, end, 'end')
+      else input.setRangeText('', start, end, 'end')
+    } else {
+      input.setRangeText(value, start, end, 'end')
+    }
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+    input.focus({ preventScroll: true })
+  }
+
+  keyboard.addEventListener('pointerdown', (event) => {
+    if (event.target.closest('button')) event.preventDefault()
+  })
+  keyboard.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-key]')
+    if (!button || !activeInput) return
+    const key = button.dataset.key
+    if (key === 'shift') {
+      isShifted = !isShifted
+      $$('[data-key]', keyboard).forEach((item) => {
         if (/^[a-z]$/.test(item.dataset.key)) item.textContent = isShifted ? item.dataset.key.toUpperCase() : item.dataset.key.toLowerCase()
       })
       return
@@ -116,7 +128,10 @@
       else hideKeyboard()
       return
     }
-    insertAtCaret(activeInput, key === 'backspace' ? 'backspace' : isShifted && /^[a-z]$/.test(key) ? key.toUpperCase() : key)     if (isShifted) {       isShifted = false       $$('[data-key]', keyboard).forEach((item) => { if (/^[A-Z]$/.test(item.textContent)) item.textContent = item.textContent.toLowerCase() })
+    insertAtCaret(activeInput, key === 'backspace' ? 'backspace' : isShifted && /^[a-z]$/.test(key) ? key.toUpperCase() : key)
+    if (isShifted) {
+      isShifted = false
+      $$('[data-key]', keyboard).forEach((item) => { if (/^[A-Z]$/.test(item.textContent)) item.textContent = item.textContent.toLowerCase() })
     }
   })
 
@@ -186,18 +201,27 @@
   }
 
   $('#assistantMic').addEventListener('click', () => {
-    const input = $('.question-form[data-mode="assistant"] textarea')     startRecognition(input, true)   })   $$('[data-mic]').forEach((button) => button.addEventListener('click', () => {
+    const input = $('.question-form[data-mode="assistant"] textarea')
+    startRecognition(input, true)
+  })
+  $$('[data-mic]').forEach((button) => button.addEventListener('click', () => {
     const input = button.closest('.input-shell')?.querySelector('input, textarea')
     startRecognition(input)
   }))
 
-  $$('.nav-item[data-tab]').forEach((button) => button.addEventListener('click', () => {     const tab = button.dataset.tab     $$
-('.module').forEach((module) => {
+  $$('.nav-item[data-tab]').forEach((button) => button.addEventListener('click', () => {
+    const tab = button.dataset.tab
+    $$('.module').forEach((module) => {
       const active = module.id === `tab-${tab}`
       module.hidden = !active
       module.classList.toggle('active', active)
     })
-    $$('.nav-item[data-tab]').forEach((item) => {       const active = item === button       item.classList.toggle('active', active)       item.setAttribute('aria-selected', String(active))     })$('#currentCrumb').textContent = button.querySelector('span:nth-child(2)').textContent
+    $$('.nav-item[data-tab]').forEach((item) => {
+      const active = item === button
+      item.classList.toggle('active', active)
+      item.setAttribute('aria-selected', String(active))
+    })
+    $('#currentCrumb').textContent = button.querySelector('span:nth-child(2)').textContent
     const moduleMap = $('.robot-map')
     if (moduleMap) {
       moduleMap.dataset.module = tab
@@ -278,13 +302,37 @@
       renderAnswer(target, payload.answer)
       setStatus(form, 'READY')
       if (form.dataset.mode === 'assistant') $('#responseActions').hidden = false
-      speak(payload.answer, $('#assistantLanguage')?.value \vert{}\vert{} 'English')     } catch (error) {       const message = error instanceof Error ? error.message : 'Something went wrong. Try again.'       target.replaceChildren()       const errorText = document.createElement('p')       errorText.className = 'answer-lines'       errorText.textContent = message       target.append(errorText)       setStatus(form, 'OFFLINE', 'error')       showToast(message)     } finally {       if (submit) { submit.disabled = false; submit.innerHTML = previousLabel }     }   }    $$('form[data-mode]').forEach((form) => form.addEventListener('submit', (event) => {
+      speak(payload.answer, $('#assistantLanguage')?.value || 'English')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Something went wrong. Try again.'
+      target.replaceChildren()
+      const errorText = document.createElement('p')
+      errorText.className = 'answer-lines'
+      errorText.textContent = message
+      target.append(errorText)
+      setStatus(form, 'OFFLINE', 'error')
+      showToast(message)
+    } finally {
+      if (submit) { submit.disabled = false; submit.innerHTML = previousLabel }
+    }
+  }
+
+  $$('form[data-mode]').forEach((form) => form.addEventListener('submit', (event) => {
     event.preventDefault()
     submitForm(form)
   }))
 
   $('#speakAgain').addEventListener('click', () => speak(currentAnswer, $('#assistantLanguage').value))
-  $('#copyAnswer').addEventListener('click', async () => {     try { await navigator.clipboard.writeText(currentAnswer); showToast('Answer copied.') }     catch { showToast('Clipboard permission is not available in this browser.') }   })    function percentageDbm(percent) {     return Math.round(-100 + Math.max(0, Math.min(100, percent)) * 0.5)   }    $$('[data-scan]').forEach((button) => button.addEventListener('click', async () => {
+  $('#copyAnswer').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(currentAnswer); showToast('Answer copied.') }
+    catch { showToast('Clipboard permission is not available in this browser.') }
+  })
+
+  function percentageDbm(percent) {
+    return Math.round(-100 + Math.max(0, Math.min(100, percent)) * 0.5)
+  }
+
+  $$('[data-scan]').forEach((button) => button.addEventListener('click', async () => {
     const kind = button.dataset.scan
     const result = $(`#${kind}Results`)
     const label = button.innerHTML
@@ -331,8 +379,8 @@
     }
   }))
 
-  $$('[data-move]').forEach((button) => button.addEventListener('click', () => {$$
-('[data-move]').forEach((item) => item.classList.toggle('active', item === button))
+  $$('[data-move]').forEach((button) => button.addEventListener('click', () => {
+    $$('[data-move]').forEach((item) => item.classList.toggle('active', item === button))
     const movement = button.dataset.move
     $('#movementStatus').textContent = movement.toUpperCase()
     $('#movementHint').textContent = movement === 'Stop' ? 'Movement test stopped.' : `${movement} command selected for the local control test.`
