@@ -46,7 +46,7 @@ def format_ai_response(text):
 
     cleaned = text.strip()
 
-    # Sirf *, -, aur | symbols ko text aur speak output se safai se hatane ke liye regex
+    # Special characters (*, -, |) ko safely remove kar dega
     cleaned = re.sub(r"[*|\-]", "", cleaned)
 
     # Trailing empty dashes hatao
