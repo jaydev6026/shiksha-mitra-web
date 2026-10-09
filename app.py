@@ -46,9 +46,6 @@ def format_ai_response(text):
 
     cleaned = text.strip()
 
-    # Special characters (*, -, |) ko safely remove kar dega
-    cleaned = re.sub(r"[*|\-]", "", cleaned)
-
     # Trailing empty dashes hatao
     cleaned = re.sub(r"\s*-\s*$", "", cleaned)
 
