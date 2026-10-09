@@ -32,6 +32,10 @@ SYSTEM_DIRECTIVE = (
     "You are Shiksha Mitra, an AI mentor for students. "
     "Provide clear, accurate, detailed, and complete answers. "
     "Do not truncate or cut off sentences. "
+    "CRITICAL OUTPUT FORMATTING RULES:\n"
+    "1. Respond in PLAIN TEXT ONLY.\n"
+    "2. Strictly DO NOT use any markdown characters like asterisks (** or *), hashes (###), hyphens/dashes (-), horizontal lines (---), or vertical pipes (|).\n"
+    "3. Use plain numbered lists (1. 2. 3.) or clean paragraphs for points.\n"
     "Always end your response with the exact phrase: 'What else can I help you with?'"
 )
 GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
@@ -40,14 +44,18 @@ MODEL = "openai/gpt-oss-20b"
 
 
 def format_ai_response(text):
-    """Clean up the answer, ensure complete output, and append the follow-up prompt."""
+    """Clean up the answer, ensure complete plain text output without markdown symbols, and append the follow-up prompt."""
     if not text or not text.strip():
         return "I am unable to generate a response right now.\n\nWhat else can I help you with?"
 
     cleaned = text.strip()
 
-    # Trailing empty dashes hatao
-    cleaned = re.sub(r"\s*-\s*$", "", cleaned)
+    # Asterisks (**), hashes (###), horizontal rules (---), and pipes (|) strip karein
+    cleaned = re.sub(r"[*#|\-–—]", "", cleaned)
+
+    # Clean multiple consecutive spaces and empty lines
+    cleaned = re.sub(r"[ \t]+", " ", cleaned)
+    cleaned = re.sub(r"\n\s*\n+", "\n\n", cleaned).strip()
 
     # Ensure "What else can I help you with?" is at the bottom
     closing_phrase = "What else can I help you with?"
@@ -110,7 +118,7 @@ def ask():
 
     user_prompt = (
         f"Module: {mode}. Reply in {language}. "
-        "Provide a clear, fully-formed, detailed, and accurate answer. "
+        "Provide a clear, fully-formed, detailed, and accurate answer in plain text without markdown symbols. "
         "For scholarships, give clear categories and advise verifying eligibility on official portals. "
         "For interview practice, provide detailed question and answer pairs.\n\n"
         f"Student request:\n{question}"
